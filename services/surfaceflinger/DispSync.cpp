@@ -391,7 +391,6 @@ DispSync::DispSync(const char* name) :
         ALOGE("Couldn't set SCHED_FIFO for DispSyncThread");
     }
 
-    android_set_rt_ioprio(mThread->getTid(), 1);
 
     reset();
     beginResync();

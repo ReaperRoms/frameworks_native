@@ -517,17 +517,6 @@ status_t Composer::setGeometryAppliesWithResize(
     return NO_ERROR;
 }
 
-status_t Composer::setColor(const sp<SurfaceComposerClient>& client,
-        const sp<IBinder>& id, uint32_t color) {
-    Mutex::Autolock _l(mLock);
-    layer_state_t* s = getLayerStateLocked(client, id);
-    if (!s)
-        return BAD_INDEX;
-    s->what |= layer_state_t::eColorChanged;
-    s->color = color;
-    return NO_ERROR;
-}
-
 // ---------------------------------------------------------------------------
 
 DisplayState& Composer::getDisplayStateLocked(const sp<IBinder>& token) {
@@ -809,10 +798,6 @@ status_t SurfaceComposerClient::setOverrideScalingMode(
 status_t SurfaceComposerClient::setGeometryAppliesWithResize(
         const sp<IBinder>& id) {
     return getComposer().setGeometryAppliesWithResize(this, id);
-}
-
-status_t SurfaceComposerClient::setColor(const sp<IBinder>& id, uint32_t color) {
-    return getComposer().setColor(this, id, color);
 }
 
 // ----------------------------------------------------------------------------

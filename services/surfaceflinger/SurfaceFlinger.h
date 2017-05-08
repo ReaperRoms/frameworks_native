@@ -60,8 +60,6 @@
 #include "DisplayHardware/HWComposer.h"
 #include "Effects/Daltonizer.h"
 
-#include "FrameRateHelper.h"
-
 #include <map>
 #include <string>
 
@@ -518,6 +516,13 @@ private:
     bool getFrameTimestamps(const Layer& layer, uint64_t frameNumber,
             FrameTimestamps* outTimestamps);
 
+    void recordBufferingStats(const char* layerName,
+            std::vector<OccupancyTracker::Segment>&& history);
+    void dumpBufferingStats(String8& result) const;
+
+    bool getFrameTimestamps(const Layer& layer, uint64_t frameNumber,
+            FrameTimestamps* outTimestamps);
+
     /* ------------------------------------------------------------------------
      * Attributes
      */
@@ -646,16 +651,6 @@ private:
     };
     mutable Mutex mBufferingStatsMutex;
     std::unordered_map<std::string, BufferingStats> mBufferingStats;
-
-    FrameRateHelper mFrameRateHelper;
-
-    /*
-     * A number that increases on every new frame composition and screen capture.
-     * LayerBlur can speed up it's drawing by caching texture using this variable
-     * if multiple LayerBlur objects draw in one frame composition.
-     * In case of display mirroring, this variable should be increased on every display.
-     */
-    uint32_t mActiveFrameSequence;
 };
 
 }; // namespace android

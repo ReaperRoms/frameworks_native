@@ -56,11 +56,6 @@ struct layer_state_t {
         eFinalCropChanged           = 0x00000400,
         eOverrideScalingModeChanged = 0x00000800,
         eGeometryAppliesWithResize  = 0x00001000,
-        eColorChanged               = 0x00002000,
-        eBlurChanged                = 0x00400000,
-        eBlurMaskSurfaceChanged     = 0x00800000,
-        eBlurMaskSamplingChanged    = 0x01000000,
-        eBlurMaskAlphaThresholdChanged = 0x02000000,
     };
 
     layer_state_t()

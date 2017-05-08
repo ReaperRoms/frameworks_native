@@ -64,8 +64,6 @@
 #include <private/android_filesystem_config.h>
 #include <private/gui/SyncFeatures.h>
 
-#include "./DisplayUtils.h"
-
 #include <set>
 
 #include "Client.h"
@@ -500,6 +498,14 @@ void SurfaceFlinger::init() {
            ALOGE("Couldn't set SCHED_FIFO for SFEventThread");
        }
     }
+
+    // set SFEventThread to SCHED_FIFO to minimize jitter
+    struct sched_param param = {0};
+    param.sched_priority = 2;
+    if (sched_setscheduler(mSFEventThread->getTid(), SCHED_FIFO, &param) != 0) {
+        ALOGE("Couldn't set SCHED_FIFO for SFEventThread");
+    }
+
 
     // Initialize the H/W composer object.  There may or may not be an
     // actual hardware composer underneath.
@@ -1616,19 +1622,12 @@ void SurfaceFlinger::handleTransactionLocked(uint32_t transactionFlags)
                             status = state.surface->query(
                                 NATIVE_WINDOW_HEIGHT, &height);
                             ALOGE_IF(status != NO_ERROR,
-                                "Unable to query height (%d)", status);
-                            if (MAX_VIRTUAL_DISPLAY_DIMENSION == 0 ||
-                                (width <= MAX_VIRTUAL_DISPLAY_DIMENSION &&
-                                 height <= MAX_VIRTUAL_DISPLAY_DIMENSION)) {
-                                int usage = 0;
-                                status = state.surface->query(
-                                    NATIVE_WINDOW_CONSUMER_USAGE_BITS, &usage);
-                                ALOGW_IF(status != NO_ERROR,
-                                    "Unable to query usage (%d)", status);
-                                if ( (status == NO_ERROR) &&
-                                      displayUtils->canAllocateHwcDisplayIdForVDS(usage)) {
-                                    hwcDisplayId = allocateHwcDisplayId(state.type);
-                                }
+                                    "Unable to query height (%d)", status);
+                            if (mUseHwcVirtualDisplays &&
+                                    (MAX_VIRTUAL_DISPLAY_DIMENSION == 0 ||
+                                    (width <= MAX_VIRTUAL_DISPLAY_DIMENSION &&
+                                     height <= MAX_VIRTUAL_DISPLAY_DIMENSION))) {
+                                hwcDisplayId = allocateHwcDisplayId(state.type);
                             }
 
                             displayUtils->initVDSInstance(mHwc, hwcDisplayId, state.surface,
@@ -2333,8 +2332,7 @@ void SurfaceFlinger::setTransactionState(
         if (s.client != NULL) {
             sp<IBinder> binder = IInterface::asBinder(s.client);
             if (binder != NULL) {
-                String16 desc(binder->getInterfaceDescriptor());
-                if (desc == ISurfaceComposerClient::descriptor) {
+                if (binder->queryLocalInterface(ISurfaceComposerClient::descriptor) != NULL) {
                     sp<Client> client( static_cast<Client *>(s.client.get()) );
                     transactionFlags |= setClientStateLocked(client, s.state);
                 }
@@ -3406,6 +3404,11 @@ status_t SurfaceFlinger::onTransact(
                 }
                 invalidateHwcGeometry();
                 repaintEverything();
+                return NO_ERROR;
+            }
+            case 1021: { // Disable HWC virtual displays
+                n = data.readInt32();
+                mUseHwcVirtualDisplays = !n;
                 return NO_ERROR;
             }
         }

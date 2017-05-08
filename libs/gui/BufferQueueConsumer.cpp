@@ -732,7 +732,7 @@ status_t BufferQueueConsumer::discardFreeBuffers() {
     return NO_ERROR;
 }
 
-void BufferQueueConsumer::dumpState(String8& result, const char* prefix) const {
+void BufferQueueConsumer::dump(String8& result, const char* prefix) const {
     const IPCThreadState* ipc = IPCThreadState::self();
     const pid_t pid = ipc->getCallingPid();
     const uid_t uid = ipc->getCallingUid();

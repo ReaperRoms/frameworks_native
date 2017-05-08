@@ -302,7 +302,7 @@ public:
         return result;
     }
 
-    virtual void dumpState(String8& result, const char* prefix) const {
+    virtual void dump(String8& result, const char* prefix) const {
         Parcel data, reply;
         data.writeInterfaceToken(IGraphicBufferConsumer::getInterfaceDescriptor());
         data.writeString8(result);

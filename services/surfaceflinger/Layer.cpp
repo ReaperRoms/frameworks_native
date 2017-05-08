@@ -744,13 +744,6 @@ void Layer::setPerFrameData(const sp<const DisplayDevice>& displayDevice) {
             (mActiveBuffer != nullptr && mActiveBuffer->handle == nullptr)) {
         ALOGV("[%s] Requesting Client composition", mName.string());
         setCompositionType(hwcId, HWC2::Composition::Client);
-#ifndef USE_HWC2
-        error = hwcLayer->setBuffer(nullptr, Fence::NO_FENCE);
-        if (error != HWC2::Error::None) {
-            ALOGE("[%s] Failed to set null buffer: %s (%d)", mName.string(),
-                    to_string(error).c_str(), static_cast<int32_t>(error));
-        }
-#endif
         return;
     }
 
@@ -1442,6 +1435,7 @@ void Layer::pushPendingState() {
 
         // Wake us up to check if the frame has been received
         setTransactionFlags(eTransactionNeeded);
+        mFlinger->setTransactionFlags(eTraversalNeeded);
     }
     mPendingStates.push_back(mCurrentState);
 }
